@@ -232,4 +232,4 @@ No hosted URL or captured screenshot is available yet. The local demo is the act
 
 First close the verification gaps and commit a dependency lockfile. Then add expiring invitations/password recovery, external ingestion with idempotency keys, shared throttling, periodic session cleanup, and event retention. Before more infrastructure, measure connection/query pressure; consider one batched catch-up per active workspace rather than one query per connection.
 
-See [design and candidate scoring](docs/DESIGN.md), [interview notes](INTERVIEW_NOTES.md), and [truthful resume bullets](RESUME_BULLETS.md).
+See [design and candidate scoring](docs/DESIGN.md) for the project evaluation and architecture rationale.

@@ -10,3 +10,5 @@ coverage/
 playwright-report/
 test-results/
 cookies*.txt
+/INTERVIEW_NOTES.md
+/RESUME_BULLETS.md
