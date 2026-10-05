@@ -10,7 +10,13 @@ export default tseslint.config(
   {
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
-    rules: { '@typescript-eslint/no-explicit-any': 'error' },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+    },
   },
   {
     files: ['client/**/*.tsx'],

@@ -94,7 +94,7 @@ export class PostgresStore implements Store {
       const directory = new URL('../../db/', import.meta.url);
       const files = (await readdir(directory)).filter((name) => /^\d+.*\.sql$/.test(name)).sort();
       for (const name of files) {
-        const sql = await readFile(new URL(name, directory), 'utf8');
+        const sql = (await readFile(new URL(name, directory), 'utf8')).replace(/\r\n/g, '\n');
         const checksum = createHash('sha256').update(sql).digest('hex');
         const existing = await client.query<{ checksum: string }>(
           'SELECT checksum FROM schema_migrations WHERE name = $1',
