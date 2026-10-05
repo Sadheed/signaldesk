@@ -1,0 +1,48 @@
+{
+  "name": "signaldesk",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A durable team activity inbox with Node.js SSE and Redis fan-out",
+  "engines": { "node": ">=24.0.0" },
+  "scripts": {
+    "dev:server": "node --env-file-if-exists=.env --watch server/main.ts",
+    "dev:client": "vite --config client/vite.config.ts",
+    "start": "node --env-file-if-exists=.env server/main.ts",
+    "db:migrate": "node --env-file-if-exists=.env server/migrate.ts",
+    "test": "node --test tests/unit/*.test.ts",
+    "test:api": "node --test tests/api/*.test.ts",
+    "test:integration": "node --test tests/integration/*.test.ts",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "build": "vite build --config client/vite.config.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run test:api && npm run build"
+  },
+  "dependencies": {
+    "express": "5.2.1",
+    "pg": "8.16.3",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "redis": "5.8.3",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.1",
+    "@types/express": "5.0.3",
+    "@types/node": "24.10.1",
+    "@types/pg": "8.15.5",
+    "@types/react": "19.2.5",
+    "@types/react-dom": "19.2.3",
+    "eslint": "9.39.1",
+    "eslint-plugin-react-hooks": "7.0.1",
+    "globals": "16.5.0",
+    "prettier": "3.6.2",
+    "supertest": "7.2.2",
+    "@types/supertest": "6.0.3",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.46.4",
+    "vite": "7.2.4"
+  }
+}
