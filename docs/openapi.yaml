@@ -1,0 +1,264 @@
+openapi: 3.1.0
+info:
+  title: SignalDesk API
+  version: 1.0.0
+  description: Same-origin, session-authenticated team activity inbox. REST errors include a request ID. SSE replays durable workspace events.
+servers:
+  - url: http://localhost:3000
+security:
+  - session: []
+paths:
+  /health/live:
+    get:
+      security: []
+      summary: Process liveness
+      responses:
+        '200': { description: Process is alive }
+  /health/ready:
+    get:
+      security: []
+      summary: Check PostgreSQL and Redis readiness
+      responses:
+        '200': { description: Both dependencies ready }
+        '503': { description: Dependency unavailable; includes database and redis booleans }
+  /api/auth/register:
+    post:
+      security: []
+      summary: Create a workspace, admin account, and session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/MemberInput'
+                - type: object
+                  required: [workspaceName]
+                  properties:
+                    workspaceName: { type: string, minLength: 1, maxLength: 80 }
+      responses:
+        '201':
+          description: Admin actor and HttpOnly sd_session cookie
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Actor' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '409': { description: Email already registered }
+        '429': { description: Too many authentication attempts }
+  /api/auth/login:
+    post:
+      security: []
+      summary: Authenticate and issue a revocable session cookie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 1, maxLength: 128 }
+      responses:
+        '200':
+          description: Actor and HttpOnly sd_session cookie
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Actor' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '429': { description: Too many attempts }
+  /api/auth/logout:
+    post:
+      summary: Revoke the session and clear its cookie
+      security: []
+      responses:
+        '204': { description: Logged out; idempotent }
+  /api/me:
+    get:
+      summary: Current actor and workspace
+      responses:
+        '200':
+          description: Actor
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Actor' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+  /api/members:
+    get:
+      summary: List members of the current workspace
+      responses:
+        '200': { description: Array of id/name/email/role objects }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+    post:
+      summary: Admin creates a member account (no email delivery)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MemberInput' }
+      responses:
+        '201':
+          description: New member actor
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Actor' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { description: Email already registered }
+  /api/events:
+    get:
+      summary: Paginated workspace history, newest first
+      parameters:
+        - in: query
+          name: before
+          schema: { $ref: '#/components/schemas/Cursor' }
+          description: Exclusive upper sequence bound for older pages
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
+      responses:
+        '200':
+          description: Page of activity with authoritative workspace head cursor
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, cursor, nextBefore]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/Activity' } }
+                  cursor: { $ref: '#/components/schemas/Cursor' }
+                  nextBefore: { type: [string, 'null'] }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+    post:
+      summary: Admin commits an event, then publishes a Redis hint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EventInput' }
+      responses:
+        '201':
+          description: Durable event; Redis failure does not undo the commit
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Activity' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/events/{id}/read:
+    put:
+      summary: Set the current user's read status idempotently
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [read]
+              properties:
+                read: { type: boolean }
+      responses:
+        '204': { description: Read state saved }
+        '404': { description: Event does not exist in this workspace }
+  /api/events/stream:
+    get:
+      summary: Authenticated SSE stream with cursor recovery
+      description: Session cookie required. Last-Event-ID supersedes after on reconnect. Activity frames contain JSON Activity with a workspace-local sequence ID. Comment frames are heartbeats. Clients must deduplicate IDs.
+      parameters:
+        - in: query
+          name: after
+          schema: { $ref: '#/components/schemas/Cursor' }
+          description: Exclusive lower sequence bound; defaults to 0
+        - in: header
+          name: Last-Event-ID
+          schema: { $ref: '#/components/schemas/Cursor' }
+      responses:
+        '200':
+          description: Live stream; session revalidated during reconciliation and each replay batch
+          content:
+            text/event-stream:
+              schema: { type: string }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '429': { description: Per-user or per-instance connection cap reached }
+components:
+  securitySchemes:
+    session: { type: apiKey, in: cookie, name: sd_session }
+  schemas:
+    Cursor:
+      type: string
+      pattern: '^(0|[1-9][0-9]{0,18})$'
+      description: Decimal sequence string, at most PostgreSQL signed bigint maximum. Avoid JS Number conversion.
+    MemberInput:
+      type: object
+      required: [name, email, password]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 80 }
+        email: { type: string, format: email, maxLength: 254 }
+        password: { type: string, minLength: 12, maxLength: 128 }
+    Actor:
+      type: object
+      required: [id, workspaceId, workspaceName, name, email, role]
+      properties:
+        id: { type: string, format: uuid }
+        workspaceId: { type: string, format: uuid }
+        workspaceName: { type: string }
+        name: { type: string }
+        email: { type: string, format: email }
+        role: { type: string, enum: [admin, member] }
+    EventInput:
+      type: object
+      required: [title, body, kind]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        body: { type: string, minLength: 1, maxLength: 2000 }
+        kind: { type: string, enum: [deployment, incident, announcement] }
+    Activity:
+      allOf:
+        - $ref: '#/components/schemas/EventInput'
+        - type: object
+          required: [id, workspaceId, sequence, actorName, createdAt, read]
+          properties:
+            id: { type: string, format: uuid }
+            workspaceId: { type: string, format: uuid }
+            sequence: { $ref: '#/components/schemas/Cursor' }
+            actorName: { type: string }
+            createdAt: { type: string, format: date-time }
+            read: { type: boolean }
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            requestId: { type: string }
+            fields:
+              {
+                type: array,
+                items:
+                  {
+                    type: object,
+                    properties: { path: { type: string }, message: { type: string } },
+                  },
+              }
+  responses:
+    InvalidInput:
+      description: Input validation failed
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthenticated:
+      description: Session missing, expired, or revoked
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Admin role required or origin refused
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }

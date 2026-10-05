@@ -172,19 +172,17 @@ export function createApp({ store, bus, config, logger, stream }: Dependencies) 
       return;
     }
     if (error instanceof ZodError) {
-      res
-        .status(400)
-        .json({
-          error: {
-            code: 'VALIDATION_FAILED',
-            message: 'Invalid input',
-            fields: error.issues.map((issue) => ({
-              path: issue.path.join('.'),
-              message: issue.message,
-            })),
-            requestId,
-          },
-        });
+      res.status(400).json({
+        error: {
+          code: 'VALIDATION_FAILED',
+          message: 'Invalid input',
+          fields: error.issues.map((issue) => ({
+            path: issue.path.join('.'),
+            message: issue.message,
+          })),
+          requestId,
+        },
+      });
       return;
     }
     if (error instanceof AppError) {
@@ -199,29 +197,25 @@ export function createApp({ store, bus, config, logger, stream }: Dependencies) 
         ? String(error.code)
         : undefined;
     if (code === '23505') {
-      res
-        .status(409)
-        .json({
-          error: {
-            code: 'ALREADY_EXISTS',
-            message: 'An account with that email already exists',
-            requestId,
-          },
-        });
+      res.status(409).json({
+        error: {
+          code: 'ALREADY_EXISTS',
+          message: 'An account with that email already exists',
+          requestId,
+        },
+      });
       return;
     }
     const status =
       typeof error === 'object' && error !== null && 'status' in error ? Number(error.status) : 500;
     if (status === 400 || status === 413) {
-      res
-        .status(status)
-        .json({
-          error: {
-            code: 'INVALID_BODY',
-            message: status === 413 ? 'Request body too large' : 'Malformed JSON',
-            requestId,
-          },
-        });
+      res.status(status).json({
+        error: {
+          code: 'INVALID_BODY',
+          message: status === 413 ? 'Request body too large' : 'Malformed JSON',
+          requestId,
+        },
+      });
       return;
     }
     logger.error('request_failed', { requestId });

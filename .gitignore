@@ -9,3 +9,4 @@ coverage/
 .npm-cache/
 playwright-report/
 test-results/
+cookies*.txt
