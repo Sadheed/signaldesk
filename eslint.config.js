@@ -12,5 +12,9 @@ export default tseslint.config(
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
     rules: { '@typescript-eslint/no-explicit-any': 'error' },
   },
-  { files: ['client/**/*.tsx'], plugins: { 'react-hooks': hooks }, rules: hooks.configs.recommended.rules },
+  {
+    files: ['client/**/*.tsx'],
+    plugins: { 'react-hooks': hooks },
+    rules: hooks.configs.recommended.rules,
+  },
 );

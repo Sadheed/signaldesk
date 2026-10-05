@@ -16,10 +16,15 @@ const schema = z.object({
 export type Config = z.infer<typeof schema>;
 export function readConfig(environment: NodeJS.ProcessEnv = process.env): Config {
   const result = schema.safeParse(environment);
-  if (!result.success) throw new Error(`Invalid configuration fields: ${result.error.issues.map((i) => i.path.join('.')).join(', ')}`);
+  if (!result.success)
+    throw new Error(
+      `Invalid configuration fields: ${result.error.issues.map((i) => i.path.join('.')).join(', ')}`,
+    );
   const config = result.data;
   const origin = new URL(config.APP_ORIGIN);
-  if (origin.origin !== config.APP_ORIGIN) throw new Error('APP_ORIGIN must be an origin without a trailing slash or path');
-  if (config.NODE_ENV === 'production' && origin.protocol !== 'https:') throw new Error('Production APP_ORIGIN requires HTTPS');
+  if (origin.origin !== config.APP_ORIGIN)
+    throw new Error('APP_ORIGIN must be an origin without a trailing slash or path');
+  if (config.NODE_ENV === 'production' && origin.protocol !== 'https:')
+    throw new Error('Production APP_ORIGIN requires HTTPS');
   return config;
 }

@@ -13,7 +13,11 @@ export function requireAdmin(role: string): void {
 }
 
 export function parseCursor(value: unknown): string {
-  if (typeof value !== 'string' || !/^(0|[1-9]\d{0,18})$/.test(value) || BigInt(value) > 9223372036854775807n) {
+  if (
+    typeof value !== 'string' ||
+    !/^(0|[1-9]\d{0,18})$/.test(value) ||
+    BigInt(value) > 9223372036854775807n
+  ) {
     throw new AppError(400, 'INVALID_CURSOR', 'Cursor must be a nonnegative PostgreSQL bigint');
   }
   return value;

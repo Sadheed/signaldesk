@@ -23,7 +23,8 @@ test('opaque sessions use unpredictable tokens and stable hashes', () => {
 });
 test('cursors preserve bigint precision and reject malformed/out-of-range input', () => {
   assert.equal(parseCursor('9007199254740993'), '9007199254740993');
-  for (const value of ['-1', '01', '1e3', '9223372036854775808', '', ['1'], 1]) assert.throws(() => parseCursor(value));
+  for (const value of ['-1', '01', '1e3', '9223372036854775808', '', ['1'], 1])
+    assert.throws(() => parseCursor(value));
 });
 test('members cannot perform admin operations', () => {
   assert.doesNotThrow(() => requireAdmin('admin'));

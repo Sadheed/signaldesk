@@ -6,19 +6,19 @@ Written before implementation. Selected candidate: real-time activity/notificati
 
 SignalDesk is a team inbox for deployment updates, incidents, and announcements. It complements existing Python ERP/RAG work with long-lived Node.js HTTP connections, async I/O, event fan-out, reconnect recovery, and flow control. The project is small enough for one developer to explain end to end. Scores below are subjective portfolio judgments, not measurements or hiring guarantees.
 
-| Criterion | Real-time feed | API gateway | File processor | Queue from scratch | npm CLI |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Junior job relevance | 10 | 7 | 8 | 8 | 7 |
-| Node knowledge | 9 | 10 | 10 | 9 | 9 |
-| Resume impact | 9 | 8 | 8 | 8 | 7 |
-| Recruiter clarity | 10 | 6 | 9 | 6 | 8 |
-| Depth | 8 | 9 | 9 | 10 | 7 |
-| Engineering practices | 9 | 9 | 9 | 9 | 8 |
-| Demo | 10 | 6 | 8 | 6 | 7 |
-| Distinction | 9 | 9 | 9 | 9 | 8 |
-| Manageable scope | 8 | 6 | 9 | 5 | 9 |
-| Interview explainability | 9 | 7 | 9 | 6 | 9 |
-| Total | 91 | 77 | 88 | 76 | 79 |
+| Criterion                | Real-time feed | API gateway | File processor | Queue from scratch | npm CLI |
+| ------------------------ | -------------: | ----------: | -------------: | -----------------: | ------: |
+| Junior job relevance     |             10 |           7 |              8 |                  8 |       7 |
+| Node knowledge           |              9 |          10 |             10 |                  9 |       9 |
+| Resume impact            |              9 |           8 |              8 |                  8 |       7 |
+| Recruiter clarity        |             10 |           6 |              9 |                  6 |       8 |
+| Depth                    |              8 |           9 |              9 |                 10 |       7 |
+| Engineering practices    |              9 |           9 |              9 |                  9 |       8 |
+| Demo                     |             10 |           6 |              8 |                  6 |       7 |
+| Distinction              |              9 |           9 |              9 |                  9 |       8 |
+| Manageable scope         |              8 |           6 |              9 |                  5 |       9 |
+| Interview explainability |              9 |           7 |              9 |                  6 |       9 |
+| Total                    |             91 |          77 |             88 |                 76 |      79 |
 
 The file processor is the runner-up: excellent Node streams material, but a team inbox offers a stronger full-stack demonstration. The gateway and custom queue introduce infrastructure correctness work that can crowd out a polished product. A CLI is focused but demonstrates fewer of the web-application skills targeted here.
 

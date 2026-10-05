@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "description": "A durable team activity inbox with Node.js SSE and Redis fan-out",
-  "engines": { "node": ">=24.0.0" },
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "scripts": {
     "dev:server": "node --env-file-if-exists=.env --watch server/main.ts",
     "dev:client": "vite --config client/vite.config.ts",
