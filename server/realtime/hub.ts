@@ -50,14 +50,12 @@ export class SseHub {
       count >= this.config.SSE_MAX_PER_USER
     )
       throw new AppError(429, 'STREAM_LIMIT', 'Too many live connections');
-    response
-      .status(200)
-      .set({
-        'Content-Type': 'text/event-stream; charset=utf-8',
-        'Cache-Control': 'no-cache, no-transform',
-        Connection: 'keep-alive',
-        'X-Accel-Buffering': 'no',
-      });
+    response.status(200).set({
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
+    });
     response.flushHeaders();
     const id = randomUUID();
     const client: Client = {
@@ -99,6 +97,7 @@ export class SseHub {
         if (current.workspaceId !== client.actor.workspaceId) throw new Error('Workspace changed');
         let more = true;
         while (more && !client.controller.signal.aborted) {
+          await this.auth.authenticate(client.token);
           const rows = await this.store.after(current, client.cursor, 50);
           for (const event of rows) {
             await writeFrame(

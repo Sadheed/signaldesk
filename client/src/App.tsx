@@ -221,9 +221,9 @@ function Dashboard({ actor, onExit }: { actor: Actor; onExit: () => void }) {
             }
           });
         };
-        stream.addEventListener('activity', (event: MessageEvent<string>) => {
+        stream.addEventListener('activity', (event: Event) => {
           try {
-            const activity = JSON.parse(event.data) as Activity;
+            const activity = JSON.parse((event as MessageEvent<string>).data) as Activity;
             setItems((previous) => mergeActivities(previous, [activity]));
           } catch {
             setError('An update could not be read. Reload to recover your feed.');
