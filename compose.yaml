@@ -1,0 +1,56 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: signaldesk
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in your shell or .env}
+      POSTGRES_DB: signaldesk
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U signaldesk -d signaldesk']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    command: ['redis-server', '--save', '', '--appendonly', 'no']
+    ports:
+      - '127.0.0.1:6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  migrate:
+    build: .
+    command: ['node', 'server/migrate.ts']
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://signaldesk:${POSTGRES_PASSWORD}@postgres:5432/signaldesk
+      REDIS_URL: redis://redis:6379
+      APP_ORIGIN: http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+  app:
+    build: .
+    init: true
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://signaldesk:${POSTGRES_PASSWORD}@postgres:5432/signaldesk
+      REDIS_URL: redis://redis:6379
+      APP_ORIGIN: http://localhost:3000
+      PORT: 3000
+    ports:
+      - '127.0.0.1:3000:3000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    stop_grace_period: 15s
+volumes:
+  postgres-data:
